@@ -12,20 +12,17 @@
 #define PIXEL_HEIGHT 600
 #define PORT 1234
 
-typedef uint32_t colorbuf_t;
-
-colorbuf_t *colorbuffer;
-int xsize,ysize;
+uint32_t* pixels;
 
 void * handle_client(void *);
 void * handle_clients(void *);
 
 void set_pixel(uint16_t x, uint16_t y, uint32_t c)
 {
-   if(x < xsize && y < ysize){
-      //TODO: Raspberry pi uses RGB565 -> colorbuffer needs to be uint16_t
+   if(x < PIXEL_WIDTH && y < PIXEL_HEIGHT){
+      //TODO: Raspberry pi uses RGB565 -> pixels needs to be uint16_t
       //TODO: alpha support
-      colorbuffer[y * xsize + x] = 0xff000000 | c; // ARGB
+      pixels[y * PIXEL_WIDTH + x] = 0xff000000 | c; // ARGB
    }
 }
 
@@ -104,48 +101,24 @@ void * handle_clients(void * foobar){
    return 0;
 }
 
-int show_modes(){
-   int display_in_use = 0; /* Only using first display */
-
-   int i, display_mode_count;
-   SDL_DisplayMode mode;
-   Uint32 f;
-
-   SDL_Log("SDL_GetNumVideoDisplays(): %i", SDL_GetNumVideoDisplays());
-
-   display_mode_count = SDL_GetNumDisplayModes(display_in_use);
-   if (display_mode_count < 1) {
-      SDL_Log("SDL_GetNumDisplayModes failed: %s", SDL_GetError());
-      return 1;
-   }
-   SDL_Log("SDL_GetNumDisplayModes: %i", display_mode_count);
-
-   for (i = 0; i < display_mode_count; ++i) {
-      if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0) {
-         SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
-         return 1;
-      }
-      f = mode.format;
-
-      SDL_Log("Mode %i\tbpp %i\t%s\t%i x %i", i,
-      SDL_BITSPERPIXEL(f), SDL_GetPixelFormatName(f), mode.w, mode.h);
-   }
-   return 0;
-}
-
 int main(){
    SDL_Window* window;
-   SDL_Surface* surface;
+   SDL_Texture* sdlTexture;
+   pixels = malloc(PIXEL_WIDTH*PIXEL_HEIGHT*4);//TODO: free pixels
    
    SDL_Init(SDL_INIT_VIDEO);
-   show_modes();
+   SDL_ShowCursor(0);
+
    window = SDL_CreateWindow("pixel", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, PIXEL_WIDTH, PIXEL_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-   surface = SDL_GetWindowSurface(window);
-   colorbuffer = (uint32_t*)surface->pixels;
+   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
    
-   xsize = PIXEL_WIDTH;
-   ysize = PIXEL_HEIGHT;
-   memset(colorbuffer, 0x00, (PIXEL_WIDTH * PIXEL_HEIGHT * sizeof(colorbuf_t)));
+   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+   SDL_RenderClear(renderer);
+   SDL_RenderPresent(renderer);
+   
+   sdlTexture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,PIXEL_WIDTH, PIXEL_HEIGHT);
+
+   SDL_Event event;
 
    pthread_t thread_id;
    
@@ -156,12 +129,11 @@ int main(){
    }
    
    while(42){
-      SDL_UpdateWindowSurface(window);
+      SDL_UpdateTexture(sdlTexture, NULL, pixels, PIXEL_WIDTH * sizeof (Uint32));
+      SDL_RenderClear(renderer);
+      SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+      SDL_RenderPresent(renderer);
       
-      surface = SDL_GetWindowSurface(window);
-      colorbuffer = (colorbuf_t*)surface->pixels;
-      
-      SDL_Event event;
       if(SDL_PollEvent(&event))
       {
          if(event.type == SDL_QUIT)
@@ -182,17 +154,6 @@ int main(){
                SDL_SetWindowFullscreen(window,SDL_WINDOW_FULLSCREEN_DESKTOP);
             }
             printf("key: %i\n", event.key.keysym.scancode );
-         }
-         if(event.type == SDL_WINDOWEVENT){
-            if(event.window.event == SDL_WINDOWEVENT_RESIZED){
-               //TODO: clear or resize buffer
-               //TODO: crashes when client thread writes to colorbuffer during resize
-               xsize = event.window.data1;
-               ysize = event.window.data2;
-               surface = SDL_GetWindowSurface(window);
-               colorbuffer = (uint32_t*)surface->pixels;
-               //SDL_Log("Window %d resized to %dx%d",event.window.windowID, event.window.data1,event.window.data2);
-            }
          }
       }
    } 
