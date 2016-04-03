@@ -118,6 +118,11 @@ int main(){
    SDL_RenderPresent(renderer);
    
    sdlTexture = SDL_CreateTexture(renderer,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,PIXEL_WIDTH, PIXEL_HEIGHT);
+   if(sdlTexture == NULL){
+      printf("could not create texture");
+      SDL_Quit();
+      exit(0);
+   }
 
    SDL_Event event;
 
@@ -130,7 +135,7 @@ int main(){
    }
    
    while(42){
-      SDL_UpdateTexture(sdlTexture, NULL, pixels, PIXEL_WIDTH * sizeof (Uint32));
+      SDL_UpdateTexture(sdlTexture, NULL, pixels, PIXEL_WIDTH * sizeof(uint32_t));
       SDL_RenderClear(renderer);
       SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
       SDL_RenderPresent(renderer);
