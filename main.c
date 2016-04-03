@@ -12,6 +12,8 @@
 #define PIXEL_HEIGHT 600
 #define PORT 1234
 
+#define BUFSIZE 1024
+
 uint32_t* pixels;
 
 void * handle_client(void *);
@@ -27,10 +29,9 @@ void set_pixel(uint16_t x, uint16_t y, uint32_t c)
 }
 
 void * handle_client(void *s){
-   const size_t bufsize = 1024;
-   struct ringbuf rx_buf = { .buf = (char[bufsize]) {0}, .bufsize = bufsize};
+   struct ringbuf rx_buf = { .buf = (char[BUFSIZE]) {0}, .bufsize = BUFSIZE};
    int sock = *(int*)s;
-   char buf[bufsize];
+   char buf[BUFSIZE];
    char line[100];
    int read_size;
    int x,y,c;
