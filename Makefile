@@ -27,4 +27,4 @@ run:
 	make
 	./pixel &
 	convert -size 320x20 xc:Transparent -pointsize 20 -fill black -draw "text 2,19 '$(INFO)'" -fill white -draw "text 0,17 '$(INFO)'" ip.png
-	watch python client.py ip.png > /dev/null
+	watch -n 10 python client.py 127.0.0.1 $(PORT) ip.png > /dev/null
