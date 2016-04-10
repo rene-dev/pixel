@@ -5,13 +5,10 @@ EXE = pixel
 
 all: $(EXE)
 
-$(EXE): main.o ringbuf.o
-	$(CC) $(LDFLAGS) main.o ringbuf.o -o $@
+$(EXE): main.o
+	$(CC) -o $@ main.o $(LDFLAGS)
 
 main.o: main.c
-	$(CC) $(CFLAGS) $< -o $@
-
-ringbuf.o: ringbuf.c
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
