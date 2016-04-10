@@ -54,14 +54,13 @@ void * handle_client(void *s){
    uint32_t x,y,c;
    while(running && (read_size = recv(sock , buf + read_pos, sizeof(buf) - read_pos , 0)) > 0){
       read_pos += read_size;
-      printf("recv %d bytes. position: %d\n", read_size, read_pos);
       int found = 1;
       while (found){
          found = 0;
          for (int i = 0; i < read_pos; i++){
             if (buf[i] == '\n'){
                buf[i] = 0;
-#if 1 // mit alpha, aber ggf. instabil
+#if 0 // mit alpha, aber ggf. instabil
                if(!strncmp(buf, "PX ", 3)){ // ...frag nicht :D...
                   char *pos1 = buf + 3;
                   x = strtoul(buf + 3, &pos1, 10);
@@ -103,13 +102,16 @@ void * handle_client(void *s){
                int count = read_pos - offset;
                if (count > 0)
                   memmove(buf, buf + offset, count); // TODO: ring buffer?
-               read_pos = 0;
+               read_pos -= offset;
                found = 1;
                break;
             }
          }
-         if (sizeof(buf) - read_pos == 0) // received only garbage for a whole buffer. start over!
+         if (sizeof(buf) - read_pos == 0){ // received only garbage for a whole buffer. start over!
+            buf[sizeof(buf) - 1] = 0;
+            printf("GARBAGE BUFFER: %s\n", buf);
             read_pos = 0;
+         }
       }
    }
    close(sock);
