@@ -6,10 +6,6 @@
 #include <pthread.h>
 #include <SDL.h>
 
-#define PIXEL_WIDTH 800
-#define PIXEL_HEIGHT 600
-#define PORT 1234
-
 #define BUFSIZE 2048
 
 #define XSTR(a) #a
@@ -60,7 +56,7 @@ void * handle_client(void *s){
          for (int i = 0; i < read_pos; i++){
             if (buf[i] == '\n'){
                buf[i] = 0;
-#if 0 // mit alpha, aber ggf. instabil
+#if 1 // mit alpha, aber ggf. instabil
                if(!strncmp(buf, "PX ", 3)){ // ...frag nicht :D...
                   char *pos1 = buf + 3;
                   x = strtoul(buf + 3, &pos1, 10);
