@@ -22,7 +22,6 @@ void * handle_clients(void *);
 void set_pixel(uint16_t x, uint16_t y, uint32_t c, uint8_t a)
 {
    if(x < PIXEL_WIDTH && y < PIXEL_HEIGHT){
-      //TODO: Raspberry pi uses RGB565 -> pixels needs to be uint16_t
       if(a == 255){ // fast & usual path
          pixels[y * PIXEL_WIDTH + x] = 0xff000000 | c; // ARGB
          return;
@@ -166,7 +165,6 @@ void * handle_clients(void * foobar){
          {
             close(client_sock);
             perror("could not create thread");
-            //return 0;
          }
       }
    }
