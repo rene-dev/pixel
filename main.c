@@ -14,7 +14,7 @@
 uint32_t* pixels;
 volatile int running = 1;
 volatile int client_thread_count = 0;
-int s;
+volatile int server_sock;
 
 void * handle_client(void *);
 void * handle_clients(void *);
@@ -127,7 +127,7 @@ void * handle_clients(void * foobar){
    
    printf("Starting Server...\n");
    
-   s = socket(PF_INET, SOCK_STREAM, 0);
+   server_sock = socket(PF_INET, SOCK_STREAM, 0);
 
    tv.tv_sec = 2;
    tv.tv_usec = 0;
@@ -135,30 +135,31 @@ void * handle_clients(void * foobar){
    addr.sin_addr.s_addr = INADDR_ANY;
    addr.sin_port = htons(PORT);
    addr.sin_family = AF_INET;
-
-   setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
    
-   if (s == -1){
+   if (server_sock == -1){
       perror("socket() failed");
       return 0;
    }
 
    int retries;
-   for (retries = 0; bind(s, (struct sockaddr*)&addr, sizeof(addr)) == -1 && retries < 10; retries++){
+   for (retries = 0; bind(server_sock, (struct sockaddr*)&addr, sizeof(addr)) == -1 && retries < 10; retries++){
       perror("bind() failed ...retry in 5s");
       usleep(5000000);
    }
    if (retries == 10)
       return 0;
 
-   if (listen(s, 3) == -1){
+   if (listen(server_sock, 3) == -1){
       perror("listen() failed");
       return 0;
    }
    printf("Listening...\n");
+   
+   setsockopt(server_sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv,sizeof(struct timeval));
+   setsockopt(server_sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
    while(running){
-      client_sock = accept(s, (struct sockaddr*)&addr, &addr_len);
+      client_sock = accept(server_sock, (struct sockaddr*)&addr, &addr_len);
       if(client_sock > 0){
          printf("Client %s connected\n", inet_ntoa(addr.sin_addr));
          if( pthread_create( &thread_id , NULL ,  handle_client , (void*) &client_sock) < 0)
@@ -168,7 +169,7 @@ void * handle_clients(void * foobar){
          }
       }
    }
-   close(s);
+   close(server_sock);
    return 0;
 }
 
@@ -229,7 +230,7 @@ int main(){
    SDL_DestroyWindow(window);
    while (client_thread_count)
       usleep(100000);
-   close(s);
+   close(server_sock);
    pthread_join(thread_id, NULL);
    free(pixels);
    SDL_Quit();
