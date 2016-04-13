@@ -193,7 +193,7 @@ int main(){
       return 1;
    }
    
-   pixels = malloc(PIXEL_WIDTH * PIXEL_HEIGHT * 4);
+   pixels = calloc(PIXEL_WIDTH * PIXEL_HEIGHT * 4, 1);
 
    pthread_t thread_id;
    if(pthread_create(&thread_id , NULL, handle_clients , NULL) < 0){
