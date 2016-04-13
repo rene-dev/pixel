@@ -140,6 +140,11 @@ void * handle_clients(void * foobar){
       perror("socket() failed");
       return 0;
    }
+   
+   if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0)
+      printf("setsockopt(SO_REUSEADDR) failed\n");
+   if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0)
+      printf("setsockopt(SO_REUSEPORT) failed\n");
 
    int retries;
    for (retries = 0; bind(server_sock, (struct sockaddr*)&addr, sizeof(addr)) == -1 && retries < 10; retries++){
@@ -180,7 +185,7 @@ int main(){
    SDL_Window* window = SDL_CreateWindow(
       "pixel", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
       PIXEL_WIDTH, PIXEL_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
    SDL_RenderClear(renderer);
    
    SDL_Texture* sdlTexture = SDL_CreateTexture(
