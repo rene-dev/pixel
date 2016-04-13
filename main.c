@@ -180,7 +180,7 @@ int main(){
    SDL_Window* window = SDL_CreateWindow(
       "pixel", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
       PIXEL_WIDTH, PIXEL_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
    SDL_RenderClear(renderer);
    
    SDL_Texture* sdlTexture = SDL_CreateTexture(
