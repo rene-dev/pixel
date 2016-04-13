@@ -14,6 +14,7 @@
 uint32_t* pixels;
 volatile int running = 1;
 volatile int client_thread_count = 0;
+int s;
 
 void * handle_client(void *);
 void * handle_clients(void *);
@@ -119,7 +120,6 @@ void * handle_client(void *s){
 
 void * handle_clients(void * foobar){
    pthread_t thread_id;
-   int s;
    int client_sock;
    socklen_t addr_len;
    struct sockaddr_in addr;
@@ -231,6 +231,7 @@ int main(){
    SDL_DestroyWindow(window);
    while (client_thread_count)
       usleep(100000);
+   close(s);
    pthread_join(thread_id, NULL);
    free(pixels);
    SDL_Quit();
