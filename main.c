@@ -141,6 +141,11 @@ void * handle_clients(void * foobar){
       perror("socket() failed");
       return 0;
    }
+   
+   if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0)
+      printf("setsockopt(SO_REUSEADDR) failed\n");
+   if (setsockopt(server_sock, SOL_SOCKET, SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0)
+      printf("setsockopt(SO_REUSEPORT) failed\n");
 
    int retries;
    for (retries = 0; bind(server_sock, (struct sockaddr*)&addr, sizeof(addr)) == -1 && retries < 10; retries++){
