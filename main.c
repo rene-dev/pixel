@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 #define BUFSIZE 2048
 
@@ -175,6 +176,7 @@ void * handle_clients(void * foobar){
 
 int main(){
    SDL_Init(SDL_INIT_VIDEO);
+   TTF_Init();
    SDL_ShowCursor(0);
 
    SDL_Window* window = SDL_CreateWindow(
@@ -192,6 +194,27 @@ int main(){
       return 1;
    }
    
+   TTF_Font* Sans = TTF_OpenFont("OpenSans-Bold.ttf", 24); //this opens a font style and sets a size
+   if(!Sans){
+       printf("TTF_OpenFont: %s\n", TTF_GetError());
+       // handle error
+   }
+
+   SDL_Color bg = {255, 255, 255};
+   SDL_Color fg = {255, 0, 255};
+   SDL_Surface* surfaceMessage = TTF_RenderText_Shaded(Sans, "127.0.0.1 127.0.0.1 127.0.0.1 127.0.0.1", fg, bg);
+   if(!surfaceMessage){
+       printf("SDL_Surface error\n");
+   }
+   SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage); //now you can convert it into a texture
+
+   SDL_Rect Message_rect; //create a rect
+   Message_rect.x = 10;  //controls the rect's x coordinate 
+   Message_rect.y = 10; // controls the rect's y coordinte
+   Message_rect.w = surfaceMessage->w; // controls the width of the rect
+   Message_rect.h = surfaceMessage->h; // controls the height of the rect
+   
+   
    pixels = calloc(PIXEL_WIDTH * PIXEL_HEIGHT * 4, 1);
 
    pthread_t thread_id;
@@ -205,6 +228,7 @@ int main(){
    while(42){
       SDL_UpdateTexture(sdlTexture, NULL, pixels, PIXEL_WIDTH * sizeof(uint32_t));
       SDL_RenderCopy(renderer, sdlTexture, NULL, NULL);
+      SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
       SDL_RenderPresent(renderer);
       SDL_Event event;
       if(SDL_PollEvent(&event)){
